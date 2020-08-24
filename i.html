@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>teste</title>
+        <style>
+            body, html {
+                background-color: #444;
+            }
+
+            a {
+                text-decoration: none;
+                color: lightblue;
+            }
+
+            a#visited {
+                text-decoration: none;
+                color: lightblue;
+            }
+
+            .normal-text {
+                color: #ddd;
+                font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            }
+
+            .darker-text {
+                color: #AAA;
+                font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            }
+
+            .quote-text {
+                color: #41b76b;
+                font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            }
+
+            #post-list {
+                padding: 5ex;
+            }
+
+            .board-title {
+                margin: 0 auto;
+                margin-top: 30px;
+                width: 100%;
+                text-align: center;
+                font-size: x-large;
+            }
+
+            .post {
+                margin-top: 15px;
+                padding: 15px;
+                border: 1px solid #888;
+                border-radius: 1px;
+            }
+
+            .post-header {
+                display: inline-block;
+                margin-top: 5px;
+                margin-left: 5px;
+            }
+
+            .post-body {
+                margin-top: 0;
+                margin-left: 20px;
+            }
+
+            .post-reply {
+                margin-left: 40px;
+                margin-top: 0;
+            }
+
+            #reply-box {
+                position: absolute;
+                padding: 10px;
+                right: 15px;
+                bottom: 15px;
+                border: 1px solid #888;
+                border-radius: 2px;
+            }
+
+            .reply-title {
+                width: 100%;
+                text-align: center;
+                margin-bottom: 15px;
+            }
+
+            .reply-header {
+                display: inline;
+                margin: 0 auto;
+            }
+
+            .reply-item {
+                display: block;
+                margin-top: 5px;
+            }
+
+            #reply-content {
+                width: 99%;
+                resize: none;
+                min-height: 75px;
+            }
+
+            #reply-submit {
+                margin: 0 auto;
+                margin-top: 5px;
+            }
+        </style>
+        <script>
+            const postTemplate = 
+            `
+            <div class="post">
+                <div>
+                    [[[TitleTemplate]]]
+                    <p class="post-header normal-text">[[[PostName]]]</p>
+                    <a class="post-header" href="#" onclick="onQuoteLink(this)">[[[PostNumber]]]</a>
+                    <p class="post-header darker-text">[[[PostDate]]]</p>
+                    [[[ReplyButton]]]
+                </div>
+                <div class="post-body">
+                    [[[PostContent]]]
+                </div>
+            </div>
+            `;
+
+            const replyButtonTemplate =
+            `
+            <span class="post-header normal-text">[<a href="##">Reply</a>]</span>
+            `;
+
+            const titleTemplate =
+            `
+            <strong class="post-header normal-text">[[[PostTitle]]]</strong>
+            <span class="post-header normal-text"> - </span>
+            `;
+
+            var onQuoteLink = function (target) {
+                onQuote(">>" + target.innerText);
+            };
+
+            function onQuote(postNumber) {
+                document.getElementById("reply-content").value += postNumber + "\n";
+            }
+
+            const baseUrl = "https://localhost:5001";
+            let g_threads = [];
+            const authorHash = Math.random().toString(); // FIXME lol jk fix everything else first
+
+            function getBoardName() {
+                let location = document.location.pathname;
+
+                return location.substring(location.lastIndexOf('/') + 1).split(".")[0];
+            }
+
+            function httpAsync(url, method, body, callback) {
+                let xmlHttp = new XMLHttpRequest();
+                xmlHttp.onreadystatechange = function() {
+                    if(xmlHttp.readyState == 4) {
+                        if (xmlHttp.status == 200 || xmlHttp.status == 201) {
+                            callback(xmlHttp.responseText);
+                        } else {
+                            console.log("shit happened");
+                        }
+                    }
+                };
+
+                xmlHttp.open(method, url, true);
+                xmlHttp.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+                xmlHttp.setRequestHeader("Accept", "application/json");
+                xmlHttp.send(body);
+            }
+
+            function createPostContent(content) {
+                let lines = content.replace(/\r\n/, "\n").split("\n");
+                let final = "";
+
+                for(let line of lines) {
+                    line = `<span class="normal-text"> ${line} </span>`;
+
+                    line = line
+                            .replace(/>>[0-9]*/, (matched) => `<a href="#" onclick="onQuote('${matched}')"> ${matched}</a>`)
+                            .replace(/>[^>|\s|\d].+/, (matched) => `<span class="quote-text"> ${matched} </span>`);
+                    
+                    final += `${line} <br />`;
+                }
+
+                return final;
+            }
+
+            function createPostElem(postData, root) {
+                let postDate = new Date(postData.timestamp);
+
+                let postDateValue = `${postDate.toISOString().split("T")[0]} ${postDate.getHours()}:${postDate.getMinutes()}`;
+
+                let template = postTemplate
+                                .replace("[[[PostName]]]", postData.author)
+                                .replace("[[[PostNumber]]]", postData.id)
+                                .replace("[[[PostDate]]]", postDateValue)
+                                .replace("[[[PostContent]]]", createPostContent(postData.content));
+
+                let finalTitle = "";
+
+                if(postData.title) {
+                    finalTitle = titleTemplate.replace("[[[PostTitle]]]", postData.title);
+                }
+
+                let replyButton = postData.parentPostId ? "" : replyButtonTemplate;
+
+                template = template
+                            .replace("[[[TitleTemplate]]]", finalTitle)
+                            .replace("[[[ReplyButton]]]", replyButton);
+
+                let post = document.createElement("div");
+                if(postData.parentPostId) {
+                    post.classList.add("post-reply");
+                }
+                post.innerHTML = template;
+
+                return post;
+            }
+
+            function setupBoard(board) {
+                document.getElementById("board-title").innerText = `${board.title} - /${board.route}/\n${board.description}`;
+                document.title = `${board.title} - /${board.route}/\n${board.description}`;
+            }
+
+            function setupThreads(threads) {
+                let postList = document.getElementById("post-list");
+
+                for(let thread of threads) {
+                    for(let index = 0; index < thread.children.length; ++index) {
+                        postList.appendChild(createPostElem(thread.children[index], index == 0));
+                    }
+                }
+
+                document.getElementById("reply-submit").disabled = false;
+            }
+
+            function refreshThreads() {
+                // Clear posts
+                let postList = document.getElementById("post-list");
+                while (postList.firstChild) {
+                    postList.removeChild(postList.lastChild);
+                }
+
+                httpAsync(`${baseUrl}/api/threads/${getBoardName()}`, "GET", null, function(body) {
+                    g_threads = JSON.parse(body);
+
+                    setupThreads(g_threads);
+                });
+            }
+
+            function load() {
+                httpAsync(`${baseUrl}/api/boards/${getBoardName()}`, "GET", null, function(body) {
+                    let board = JSON.parse(body);
+
+                    setupBoard(board);
+
+                    refreshThreads();
+                });
+            }
+
+            function newPost() {
+                let name = document.getElementById("reply-name").value;
+                let title = document.getElementById("reply-title").value;
+                let content = document.getElementById("reply-content").value;
+                let postDate = new Date().getTime();
+
+                console.log(content);
+
+                let parentPost = null;
+                if(content.match(/(?!>>)[0-9]+/)) {
+                    let replyPost = Number(content.match(/(?!>>)[0-9]+/)[0]);
+
+                    // Find parent post id
+                    for(let thread of g_threads) {
+                        for(let post of thread.children) {
+                            if(post.id == replyPost) {
+                                parentPost = post.parentPostId ?? post.id;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                let post =
+                {
+                    "title": title,
+                    "author": name,
+                    "timestamp": postDate,
+                    "content": content,
+                    "authorHash": authorHash,
+                    "parentPostId": parentPost
+                };
+
+                let url = `${baseUrl}/api/threads` + (parentPost ? "" : `/${getBoardName()}`);
+                console.log(url);
+                console.log(JSON.stringify(post));
+
+                httpAsync(url, "POST", JSON.stringify(post), function() {
+                    refreshThreads();
+                });
+            }
+        </script>
+    </head>
+    <body onload="load()">
+        <div class="board-title">
+            <strong id="board-title" class="board-title normal-text">idol - /i/</strong>
+        </div>
+        <div id="post-list">
+            <div class="post">
+                <div>
+                    <strong class="post-header normal-text">Title</strong>
+                    <span class="post-header normal-text"> - </span>
+                    <p class="post-header normal-text">Anonymous</p>
+                    <a class="post-header" href="#">11111111</a>
+                    <p class="post-header darker-text">2020-08-24 11:13</p>
+                    <span class="post-header normal-text">[<a href="##">Reply</a>]</span>
+                </div>
+                <div class="post-body">
+                    <p class="darker-text">shinyyyyyyyyyyyyyyyyyyyyyyyyy</p>
+                </div>
+            </div>
+        </div>
+        <div id="reply-box">
+            <div class="reply-title">
+                <strong class="reply-title normal-text">Post a reply</strong>
+            </div>
+            <div class="reply-header">
+                <input id="reply-name" class="reply-header" type="text" placeholder="name" value="Anonymous">
+                <input id="reply-title" class="reply-header" placeholder="title">
+            </div>
+            <textarea id="reply-content" class="reply-item" placeholder="content"></textarea>
+            <button id="reply-submit" class="reply-item" onclick="newPost();" disabled>Post</button>
+        </div>
+    </body>
+</html>
