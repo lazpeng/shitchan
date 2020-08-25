@@ -1,7 +1,7 @@
 let g_board = "";
 
 function newPost() {
-    submitNewPost(g_board, getPageArgument());
+    submitNewPost(g_board, Number(getPageArgument()));
 }
 
 var onQuoteLink = function (target) {
