@@ -30,7 +30,7 @@ function refreshThreads() {
 }
 
 function newPost() {
-    submitNewPost(getPageArgument(), null);
+    submitNewPost(getPageArgument(), null, refreshThreads);
 }
 
 function load() {

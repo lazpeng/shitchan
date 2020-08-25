@@ -101,7 +101,7 @@ function createPostElem(postData) {
     return post;
 }
 
-function submitNewPost(board, parent) {
+function submitNewPost(board, parent, refreshCallback) {
     let name = document.getElementById("reply-name").value;
     let title = document.getElementById("reply-title").value;
     let content = document.getElementById("reply-content").value;
@@ -119,7 +119,7 @@ function submitNewPost(board, parent) {
     };
 
     httpAsync(`${baseUrl}/api/threads`, "POST", JSON.stringify(post), function() {
-        refreshThreads();
+        refreshCallback();
     });
 
     document.getElementById("reply-content").value = "";

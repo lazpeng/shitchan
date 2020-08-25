@@ -1,7 +1,7 @@
 let g_board = "";
 
 function newPost() {
-    submitNewPost(g_board, Number(getPageArgument()));
+    submitNewPost(g_board, Number(getPageArgument()), refresh);
 }
 
 var onQuoteLink = function (target) {
@@ -25,6 +25,10 @@ function setupTitle(board, thread) {
     document.getElementById("board-title").innerText = text;
     document.title = `${thread.parentPostId} - ${text}`;
     g_board = board.route;
+}
+
+function refresh() {
+
 }
 
 function load() {
