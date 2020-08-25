@@ -37,20 +37,22 @@ function setupThread(thread) {
     }
 }
 
-function setupTitle(board) {
+function setupTitle(board, thread) {
     let text = `${board.title} - /${board.route}/\n${board.description}`;
     document.getElementById("board-title").innerText = text;
-    document.title = text;
+    document.title = `${thread.parentPostId} - ${text}`;
 }
 
 function load() {
     let threadNum = getPageArgument();
 
-    httpAsync(`${baseUrl}/api/threads/${threadNum}`, "GET", null, function(thread) {
+    httpAsync(`${baseUrl}/api/threads/${threadNum}`, "GET", null, function(content) {
+        let thread = JSON.parse(content);
+
         httpAsync(`${baseUrl}/api/boards/${thread.board}`, "GET", null, function (board) {
             setupTitle(JSON.parse(board));
         });
 
-        setupThread(JSON.parse(thread));
+        setupThread(thread);
     });
 }
