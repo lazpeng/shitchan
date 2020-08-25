@@ -1,3 +1,5 @@
+let g_board = "";
+
 function newPost() {
     let name = document.getElementById("reply-name").value;
     let title = document.getElementById("reply-title").value;
@@ -11,6 +13,7 @@ function newPost() {
         "timestamp": postDate,
         "content": content,
         "authorHash": authorHash,
+        "board": g_board,
         "parentPostId": getPageArgument()
     };
 
@@ -41,6 +44,7 @@ function setupTitle(board, thread) {
     let text = `${board.title} - /${board.route}/\n${board.description}`;
     document.getElementById("board-title").innerText = text;
     document.title = `${thread.parentPostId} - ${text}`;
+    g_board = board.route;
 }
 
 function load() {

@@ -42,7 +42,8 @@ function newPost() {
         "timestamp": postDate,
         "content": content,
         "authorHash": authorHash,
-        "parentPostId": null
+        "parentPostId": null,
+        "board": getPageArgument()
     };
 
     httpAsync(`${baseUrl}/api/threads/${getPageArgument()}`, "POST", JSON.stringify(post), function() {
