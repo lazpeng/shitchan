@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>shitchan board</title>
+        <link rel="stylesheet" type="text/css" href="styles/common.css">
+        <link rel="stylesheet" type="text/css" href="styles/board.css">
+        <script type="text/javascript" src="scripts/common.js"></script>
+        <script type="text/javascript" src="scripts/board.js"></script>
+    </head>
+    <body onload="load()">
+        <div class="board-title">
+            <strong id="board-title" class="board-title normal-text"></strong>
+        </div>
+        <div id="post-list">
+        </div>
+        <div id="reply-box">
+            <div class="reply-title">
+                <strong class="reply-title normal-text">New post</strong>
+            </div>
+            <div class="reply-header">
+                <input id="reply-name" class="reply-header" type="text" placeholder="name" value="Anonymous">
+                <input id="reply-title" class="reply-header" placeholder="title">
+            </div>
+            <textarea id="reply-content" class="reply-item" placeholder="content"></textarea>
+            <button id="reply-submit" class="reply-item" onclick="newPost();">Post</button>
+        </div>
+    </body>
+</html>

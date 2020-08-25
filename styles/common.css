@@ -1,0 +1,63 @@
+body, html {
+    background-color: #444;
+}
+
+.board-title {
+    margin: 0 auto;
+    margin-top: 30px;
+    width: 100%;
+    text-align: center;
+    font-size: x-large;
+}
+
+a {
+    text-decoration: none;
+    color: lightblue;
+}
+
+a#visited {
+    text-decoration: none;
+    color: lightblue;
+}
+
+.normal-text {
+    color: #ddd;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.darker-text {
+    color: #AAA;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.quote-text {
+    color: #41b76b;
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+#post-list {
+    padding: 5ex;
+}
+
+.post {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #888;
+    border-radius: 1px;
+}
+
+.post-header {
+    display: inline-block;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+.post-body {
+    margin-top: 0;
+    margin-left: 20px;
+}
+
+.post-reply {
+    margin-left: 40px;
+    margin-top: 0;
+}
