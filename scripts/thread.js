@@ -1,27 +1,7 @@
 let g_board = "";
 
 function newPost() {
-    let name = document.getElementById("reply-name").value;
-    let title = document.getElementById("reply-title").value;
-    let content = document.getElementById("reply-content").value;
-    let postDate = new Date().getTime();
-
-    let post =
-    {
-        "title": title,
-        "author": name,
-        "timestamp": postDate,
-        "content": content,
-        "authorHash": authorHash,
-        "board": g_board,
-        "parentPostId": getPageArgument()
-    };
-
-    httpAsync(`${baseUrl}/api/threads`, "POST", JSON.stringify(post), function() {
-        refreshThreads();
-    });
-
-    document.getElementById("reply-content").value = "";
+    submitNewPost(g_board, getPageArgument());
 }
 
 var onQuoteLink = function (target) {
@@ -54,7 +34,7 @@ function load() {
         let thread = JSON.parse(content);
 
         httpAsync(`${baseUrl}/api/boards/${thread.board}`, "GET", null, function (board) {
-            setupTitle(JSON.parse(board));
+            setupTitle(JSON.parse(board), thread);
         });
 
         setupThread(thread);

@@ -30,27 +30,7 @@ function refreshThreads() {
 }
 
 function newPost() {
-    let name = document.getElementById("reply-name").value;
-    let title = document.getElementById("reply-title").value;
-    let content = document.getElementById("reply-content").value;
-    let postDate = new Date().getTime();
-
-    let post =
-    {
-        "title": title,
-        "author": name,
-        "timestamp": postDate,
-        "content": content,
-        "authorHash": authorHash,
-        "parentPostId": null,
-        "board": getPageArgument()
-    };
-
-    httpAsync(`${baseUrl}/api/threads/${getPageArgument()}`, "POST", JSON.stringify(post), function() {
-        refreshThreads();
-    });
-
-    document.getElementById("reply-content").value = "";
+    submitNewPost(getPageArgument(), null);
 }
 
 function load() {

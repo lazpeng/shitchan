@@ -100,3 +100,27 @@ function createPostElem(postData) {
 
     return post;
 }
+
+function submitNewPost(board, parent) {
+    let name = document.getElementById("reply-name").value;
+    let title = document.getElementById("reply-title").value;
+    let content = document.getElementById("reply-content").value;
+    let postDate = new Date().getTime();
+
+    let post =
+    {
+        "title": title,
+        "author": name,
+        "timestamp": postDate,
+        "content": content,
+        "authorHash": authorHash,
+        "board": board,
+        "parentPostId": parent
+    };
+
+    httpAsync(`${baseUrl}/api/threads`, "POST", JSON.stringify(post), function() {
+        refreshThreads();
+    });
+
+    document.getElementById("reply-content").value = "";
+}
