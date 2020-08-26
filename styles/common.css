@@ -20,6 +20,10 @@ a#visited {
     color: lightblue;
 }
 
+.text {
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
 .normal-text {
     color: #ddd;
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
@@ -35,8 +39,29 @@ a#visited {
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
 
-#post-list {
-    padding: 5ex;
+#top-menu {
+    border: 1px solid #888;
+    border-radius: 3px;
+    padding: 15px;
+}
+
+#top-menu-admin {
+    position: absolute;
+    right: 25px;
+    display: inline;
+}
+
+#top-menu-admin-area {
+    display: none;
+}
+
+#top-menu a {
+    margin-right: 5px;
+    font-size: 18px;
+}
+
+#top-menu-left {
+    display: inline-block;
 }
 
 .post {

@@ -10,7 +10,7 @@ function setupThreads(threads) {
 
     for(let thread of threads) {
         for(let index = 0; index < thread.children.length; ++index) {
-            postList.appendChild(createPostElem(thread.children[index]));
+            postList.appendChild(createPostElem(thread.children[index], false));
         }
     }
 }
@@ -33,7 +33,7 @@ function newPost() {
     submitNewPost(getPageArgument(), null, refreshThreads);
 }
 
-function load() {
+function pageLoad() {
     httpAsync(`${baseUrl}/api/boards/${getPageArgument()}`, "GET", null, function(body) {
         let board = JSON.parse(body);
 

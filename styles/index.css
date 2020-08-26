@@ -1,0 +1,25 @@
+#header {
+    margin-top: 100px;
+    text-align: center;
+}
+
+#header h1 {
+    color: #080;
+}
+
+#content {
+    margin-top: 100px;
+    text-align: center;
+}
+
+#board-list {
+    width: 75%;
+    min-height: 100px;
+    margin: 0 auto;
+    border: 1px solid #888;
+    border-radius: 3px;
+}
+
+#board-list td, th {
+    border: 1px solid #666;
+}
