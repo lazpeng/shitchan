@@ -262,7 +262,7 @@ function setCookie(name, value) {
 function getCookie(name) {
     let pairs = document.cookie.split(";").map(e => {
         let split = e.split("=");
-        if(split.length > 0) {
+        if(split.length > 1) {
             return {
                 name: split[0].trim(),
                 value: split[1].trim()
