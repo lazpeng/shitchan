@@ -100,7 +100,7 @@ function createPostContent(postData, postList) {
                 .replaceAll(new RegExp(/>>[0-9]*/, 'g'), (matched) => {
                     let text = matched.substring(2);
                     let post = postList.filter(p => p.id == Number(text));
-                    if(post && post.author == authorHash) {
+                    if(post && post.authorHash == authorHash) {
                         text += " (You)";
                     } else if(text == parentPost) {
                         text += " (OP)";
