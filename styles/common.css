@@ -52,16 +52,13 @@ a#visited {
 #top-menu-admin {
     position: absolute;
     right: 25px;
-    display: inline;
-}
-
-#top-menu-admin-area {
-    display: none;
+    display: inline-block;
 }
 
 #top-menu a {
     margin-right: 5px;
     font-size: 18px;
+    display: inline-block;
 }
 
 #top-menu-left {

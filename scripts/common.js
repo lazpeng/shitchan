@@ -106,6 +106,14 @@ function createPostContent(postData, postList) {
     return final;
 }
 
+function onReportPost(id) {
+    httpAsync(`${baseUrl}/api/threads/report`, "POST", id, function() {
+        if(pageLoad) {
+            pageLoad();
+        }
+    });
+}
+
 function createPostElem(postData, onThread, thread) {
     let postDate = new Date(postData.posted);
     const parentPost = postData.parentPostId ?? postData.id;
@@ -180,6 +188,7 @@ function submitNewPost(board, parent, refreshCallback) {
     });
 
     document.getElementById("reply-content").value = "";
+    document.getElementById("reply-title").value = "";
 }
 
 function uuidv4() {

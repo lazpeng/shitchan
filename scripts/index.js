@@ -50,6 +50,21 @@ function refreshBoards() {
     });
 }
 
+function onUpdateCodeCliked() {
+    let code = getCookie("code");
+    if(code == null || code == '') {
+        alert("No code to update");
+    }
+
+    let updated = prompt("Enter new code");
+    httpAsync(`${baseUrl}/api/admins/${code}`, "PUT", `"${updated}"`, function(body) {
+        alert("Code updated successfully");
+
+        setCookie("code", updated);
+        load();
+    });
+}
+
 function onNewBoard() {
     let route = prompt("Enter a route for the board (without the /)");
     let title = prompt("Enter a title");
