@@ -1,0 +1,8 @@
+.empty-board {
+    padding-top: 80px;
+    margin: 0 auto;
+    text-align: center;
+    color: #999;
+    font-size: medium;
+    font-weight: bold;
+}

@@ -2,15 +2,20 @@ const postTemplate =
     `
     <div class="post">
         <div>
+            [[[StickyTemplate]]]
             [[[TitleTemplate]]]
             <p class="post-header normal-text">[[[PostName]]]</p>
             <a class="post-header" href="thread.html#[[[ParentPost]]]" onclick="onPostNumClicked([[[PostNumber]]])">[[[PostNumber]]]</a>
             <p class="post-header darker-text">[[[PostDate]]]</p>
             [[[ReplyButton]]]
+            [[[ReportButton]]]
+            [[[StickyButton]]]
+            [[[DeleteButton]]]
         </div>
         <div class="post-body">
             [[[PostContent]]]
         </div>
+        [[[ThreadOmittedPosts]]]
     </div>
     `;
 
@@ -18,16 +23,27 @@ const replyButtonTemplate =
     `
     <span class="post-header normal-text">[<a href="thread.html#[[[ParentPost]]]">Reply</a>]</span>
     `;
+const postButtonTemplate =
+    `
+    <span class="post-header normal-text">[<a href="board.html#[[[Board]]]" onclick="[[[onclick]]]">[[[Text]]]</a>]</span>
+    `;
 
 const titleTemplate =
     `
     <strong class="post-header normal-text">[[[PostTitle]]]</strong>
     <span class="post-header normal-text"> - </span>
     `;
+const stickyTemplate =
+    `
+    <strong class="post-header normal-text">[<span class="post-header sticky-title">Stickied</span> ]</strong>
+    `;
+const omittedPostsTemplate =
+    `
+    <strong class="post-header darker-text" style="padding-top: 15px">[[[NumPostsOmitted]]] post(s) omitted</strong>
+    `;
 
-//const baseUrl = "https://localhost:5000";
+//const baseUrl = "https://localhost:5001";
 const baseUrl = "https://shitchan.herokuapp.com";
-const authorHash = Math.random().toString(); // FIXME lol jk fix everything else first
 
 function httpAsync(url, method, body, callback) {
     let xmlHttp = new XMLHttpRequest();
@@ -51,47 +67,73 @@ function getPageArgument() {
     return document.location.hash.substring(1);
 }
 
-function createPostContent(postData) {
+function getPostButton(text, action) {
+    return postButtonTemplate
+            .replaceAll("[[[Board]]]", getPageArgument())
+            .replaceAll("[[[onclick]]]", action)
+            .replaceAll("[[[Text]]]", text);
+}
+
+function sanitizeContent(content) {
+    let div = document.createElement("div");
+    div.textContent = content;
+    return div.innerHTML;
+}
+
+function createPostContent(postData, postList) {
     let lines = postData.content.replace(/\r\n/, "\n").split("\n");
     let final = "";
     const parentPost = postData.parentPostId ?? postData.id;
+    const authorHash = getCookie("session");
 
     for(let line of lines) {
-        line = `<span class="normal-text"> ${line} </span>`;
-
         line = line
-                .replace(/>>[0-9]*/, (matched) => `<a href="thread.html#${parentPost}" onclick="onPostNumClicked(${matched})"> ${matched}${matched.substring(2) == parentPost ? " (OP) " : "" }</a>`)
-                .replace(/>[^>|\s|\d].+/, (matched) => `<span class="quote-text"> ${matched} </span>`);
+                .replaceAll(new RegExp(/>>[0-9]*/, 'g'), (matched) => {
+                    let text = matched.substring(2);
+                    let post = postList.filter(p => p.id == Number(text));
+                    if(post && post.author == authorHash) {
+                        text += " (You)";
+                    } else if(text == parentPost) {
+                        text += " (OP)";
+                    }
+                    return `<a href="thread.html#${parentPost}" onclick="onPostNumClicked(${matched})"> ${text} </a>`
+                })
+                .replaceAll(new RegExp(/^>([^>]|>>).+/, 'g'), (matched) => `<span class="quote-text"> ${matched} </span>`);
         
-        final += `${line} <br />`;
+        final += `<span class="normal-text"> ${line} </span> <br />`;
     }
 
     return final;
 }
 
-function createPostElem(postData, onThread) {
-    let postDate = new Date(postData.timestamp);
+function createPostElem(postData, onThread, thread) {
+    let postDate = new Date(postData.posted);
     const parentPost = postData.parentPostId ?? postData.id;
     const postDateValue = `${postDate.toISOString().split("T")[0]} ${postDate.getHours()}:${postDate.getMinutes()}`;
+    const deleteButton = isLoggedIn() ? getPostButton("Delete", `onDeletePost(${postData.id})`) : "";
+    const stickyButton = isLoggedIn() && postData.parentPostId == null && !onThread ? getPostButton("Sticky thread", `onStickyPost(${postData.id}, ${postData.stickied ? "false" : "true"})`) : "";
+    const replyButton = postData.parentPostId || onThread ? "" : replyButtonTemplate.replace("[[[ParentPost]]]", parentPost);
+    const finalTitle = postData.title ? titleTemplate.replace("[[[PostTitle]]]", postData.title) : "";
+    const finalSticky = postData.stickied && postData.parentPostId == null ? stickyTemplate : "";
+    let omittedPosts = "";
+    if(postData.parentPostId == null && thread.numberOfPosts > thread.children.length - 1 && !onThread) {
+        let numOmitted = thread.numberOfPosts - thread.children.length + 1;
+        omittedPosts = omittedPostsTemplate.replace("[[[NumPostsOmitted]]]", numOmitted);
+    }
 
     let template = postTemplate
                     .replaceAll("[[[ParentPost]]]", parentPost)
                     .replaceAll("[[[PostName]]]", postData.author)
                     .replaceAll("[[[PostNumber]]]", postData.id)
                     .replaceAll("[[[PostDate]]]", postDateValue)
-                    .replaceAll("[[[PostContent]]]", createPostContent(postData));
-
-    let finalTitle = "";
-
-    if(postData.title) {
-        finalTitle = titleTemplate.replace("[[[PostTitle]]]", postData.title);
-    }
-
-    let replyButton = postData.parentPostId || onThread ? "" : replyButtonTemplate.replace("[[[ParentPost]]]", parentPost);
-
-    template = template
-                .replace("[[[TitleTemplate]]]", finalTitle)
-                .replace("[[[ReplyButton]]]", replyButton);
+                    .replaceAll("[[[PostContent]]]", createPostContent(postData, thread.children))
+                    .replaceAll("[[[ReportButton]]]", getPostButton("Report", `onReportPost(${postData.id})`))
+                    .replaceAll("[[[StickyButton]]]", stickyButton)
+                    .replaceAll("[[[DeleteButton]]]", deleteButton)
+                    .replaceAll("[[[TitleTemplate]]]", finalTitle)
+                    .replaceAll("[[[StickyTemplate]]]", finalSticky)
+                    .replaceAll("[[[ReplyButton]]]", replyButton)
+                    .replaceAll("[[[ThreadOmittedPosts]]]", omittedPosts);
 
     let post = document.createElement("div");
     if(postData.parentPostId) {
@@ -102,17 +144,31 @@ function createPostElem(postData, onThread) {
     return post;
 }
 
+function onStickyPost(threadId, sticky) {
+    let body = {
+        postNumber: threadId,
+        code: getCookie("code")
+    };
+
+    httpAsync(`${baseUrl}/api/threads/sticky?stickied=${sticky}`, "PUT", JSON.stringify(body), function() {
+        if(pageLoad) {
+            pageLoad();
+        }
+    });
+}
+
 function submitNewPost(board, parent, refreshCallback) {
     let name = document.getElementById("reply-name").value;
     let title = document.getElementById("reply-title").value;
     let content = document.getElementById("reply-content").value;
     let postDate = new Date().getTime();
+    let authorHash = getCookie("session");
 
     let post =
     {
         "title": title,
         "author": name,
-        "timestamp": postDate,
+        "posted": postDate,
         "content": content,
         "authorHash": authorHash,
         "board": board,
@@ -126,65 +182,52 @@ function submitNewPost(board, parent, refreshCallback) {
     document.getElementById("reply-content").value = "";
 }
 
-function getCookieData() {
-    let contents = document.cookie;
-
-    if(contents) {
-        let elements = contents.split(';');
-        return elements.map((e) => {
-            let parts = e.split('=');
-            return {
-                name: parts[0].trim(),
-                value: parts[1].trim()
-            };
-        });
-    } else return null;
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
 }
 
-function writeCookie(array) {
-    let final = "";
-
-    for(let i = 0; i < array.length; ++i) {
-        if(i > 0) {
-            final += "; ";
-        }
-
-        const current = array[i];
-
-        final += `${current.name} = ${current.value}`;
-    }
-
-    document.cookie = final;
-}
-
-function newCookie() {
+function setCookie(name, value) {
     let expDate = new Date();
     const expDays = 30;
     expDate.setTime(expDate.getTime() + (expDays*24*60*60*1000));
-    // TODO: User hash for using (You)s
-    return [
-        { name: "expires", value: expDate.toUTCString() },
-        { name: "session", value: null }
-    ];
+
+    document.cookie = `${name} = ${value} ; expires = ${expDate.toUTCString()} ; path=/;`;
 }
 
-function isLoggedIn() {    
-    let cookie = getCookieData();
-    if(!cookie) {
-        cookie = newCookie();
-        writeCookie(cookie);
-    }
+function getCookie(name) {
+    let pairs = document.cookie.split(";").map(e => {
+        let split = e.split("=");
+        return {
+            name: split[0].trim(),
+            value: split[1].trim()
+        }
+    });
 
-    let session = cookie.filter(e => e.name == 'session').value;
-    return session && session != 'null';
+    return pairs.find(p => p.name == name).value;
+}
+
+function isLoggedIn() {
+    let code = getCookie("code");
+    return code !== '' && code !== undefined;
 }
 
 function onLoginClicked() {
-    if(isLoggedIn()) {
+    let code = prompt("Enter admin code");
 
-    } else {
-
-    }
+    httpAsync(`${baseUrl}/api/admins/${code}`, "GET", null, function(response) {
+        if(response == 'true') {
+            setCookie("code", code);
+            alert("Looged in as admin");
+            if(onIsAdmin) {
+                onIsAdmin();
+            }
+        } else {
+            alert("Incorrect code");
+        }
+    });
 }
 
 function onPostNumClicked(number) {
@@ -192,14 +235,13 @@ function onPostNumClicked(number) {
 }
 
 function commonLoad() {
-    const login = document.getElementById("top-menu-login");
-    const adminArea = document.getElementById("top-menu-admin-area");
+    let session = getCookie("session");
+    if(session == "" || session == undefined) {
+        setCookie("session", uuidv4());
+    }
 
-    if(isLoggedIn()) {
-        login.innerText = "Logout";
-        adminArea.style.display = 'initial';
-    } else {
-        login.innerText = "Login";
+    if(isLoggedIn() && onIsAdmin) {
+        onIsAdmin();
     }
 }
 

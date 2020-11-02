@@ -16,7 +16,7 @@ function setupThread(thread) {
     const postList = document.getElementById("post-list");
     for(let index = 0; index < thread.children.length; ++index) {
         let post = thread.children[index];
-        let elem = createPostElem(post, true);
+        let elem = createPostElem(post, true, thread);
         postList.appendChild(elem);
     }
 }
@@ -49,6 +49,10 @@ function refresh(onRefreshedCallback) {
 
         setupThread(thread);
     });
+}
+
+function onIsAdmin() {
+    
 }
 
 function pageLoad() {

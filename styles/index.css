@@ -23,3 +23,8 @@
 #board-list td, th {
     border: 1px solid #666;
 }
+
+.new-board {
+    margin-top: 75px;
+    text-align: center;
+}

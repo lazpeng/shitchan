@@ -17,8 +17,7 @@
                 <a class="text" href="https://github.com/lazpeng/shitchan">Github</a>
             </div>
             <div id="top-menu-admin">
-                <a id="top-menu-admin-area" class="text" href="admin.html">Admin area</a>
-                <a id="top-menu-login" class="text" href="#" onclick="onLoginClicked()">Login</a>
+                <a id="top-menu-login" class="text" href="#" onclick="onLoginClicked()">Enter code</a>
             </div>
         </div>
         <div id="header">
@@ -27,17 +26,12 @@
         <div id="content">
             <p class="normal-text">Boards</p>
             <table id="board-list">
-                <tr>
-                    <th class="normal-text">URL</th>
-                    <th class="normal-text">Name</th>
-                    <th class="normal-text">Description</th>
-                </tr>
-                <tr>
-                    <td><a class="text" href="board.html#i">/i/</a></td>
-                    <td><a class="text" href="board.html#i">idol</a></td>
-                    <td class="darker-text">Discussion about idols</td>
-                </tr>
+                <tbody id="board-list-body">
+                </tbody>
             </table>
+            <div id="new-board" style="display: none;">
+                <p class="normal-text new-board">[ <a href="#" class="new-board" onclick="onNewBoard()">New board</a> ] </p>
+            </div>
         </div>
     </body>
 </html>

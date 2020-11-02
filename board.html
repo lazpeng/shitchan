@@ -5,8 +5,8 @@
         <title>shitchan board</title>
         <link rel="stylesheet" type="text/css" href="styles/common.css">
         <link rel="stylesheet" type="text/css" href="styles/board.css">
-        <script type="text/javascript" src="scripts/common.js"></script>
         <script type="text/javascript" src="scripts/board.js"></script>
+        <script type="text/javascript" src="scripts/common.js"></script>
     </head>
     <body onload="load()">
         <div id="top-menu">
@@ -17,18 +17,18 @@
                 <a class="text" href="https://github.com/lazpeng/shitchan">Github</a>
             </div>
             <div id="top-menu-admin">
-                <a id="top-menu-admin-area" class="text" href="admin.html">Admin area</a>
-                <a id="top-menu-login" class="text" href="#" onclick="onLoginClicked()">Login</a>
+                <a id="top-menu-login" class="text" href="#" onclick="onLoginClicked()">Enter code</a>
             </div>
         </div>
         <div class="board-title">
             <strong id="board-title" class="board-title normal-text"></strong>
+            <hr>
         </div>
         <div id="post-list">
         </div>
         <div id="reply-box">
             <div class="reply-title">
-                <strong class="reply-title normal-text">New post</strong>
+                <strong class="reply-title normal-text">New thread</strong>
             </div>
             <div class="reply-header">
                 <input id="reply-name" class="reply-header" type="text" placeholder="name" value="Anonymous">
