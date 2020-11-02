@@ -105,7 +105,7 @@ function createPostContent(postData, postList) {
                     } else if(text == parentPost) {
                         text += " (OP)";
                     }
-                    return `<a href="thread.html#${parentPost}" onclick="onPostNumClicked(${matched})"> ${text} </a>`
+                    return `<a href="thread.html#${parentPost}" onclick="onPostNumClicked(${matched})"> >>${text} </a>`
                 })
                 .replaceAll(new RegExp(/^>([^>]|>>).+/, 'g'), (matched) => `<span class="quote-text"> ${matched} </span>`);
         
