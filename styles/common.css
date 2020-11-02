@@ -31,6 +31,7 @@ a#visited {
 .normal-text {
     color: #ddd;
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    text-align: start;
 }
 
 .darker-text {
@@ -83,9 +84,17 @@ a#visited {
     margin-left: 20px;
 }
 
+.post-image {
+    max-width: 250px;
+}
+
 .post-reply {
     margin-left: 40px;
     margin-top: 0;
+}
+
+#reply-file {
+    padding-top: 5px;
 }
 
 #reply-box {

@@ -1,21 +1,26 @@
 const postTemplate = 
     `
     <div class="post">
-        <div>
-            [[[StickyTemplate]]]
-            [[[TitleTemplate]]]
-            <p class="post-header normal-text">[[[PostName]]]</p>
-            <a class="post-header" href="thread.html#[[[ParentPost]]]" onclick="onPostNumClicked([[[PostNumber]]])">[[[PostNumber]]]</a>
-            <p class="post-header darker-text">[[[PostDate]]]</p>
-            [[[ReplyButton]]]
-            [[[ReportButton]]]
-            [[[StickyButton]]]
-            [[[DeleteButton]]]
-        </div>
-        <div class="post-body">
-            [[[PostContent]]]
+        <div style="display: flex; flex-direction: row;">
+        [[[PostImage]]]
+        <div style="display: flex; flex-direction: column; [[[ImagePadding]]]">
+            <div>
+                [[[StickyTemplate]]]
+                [[[FilenameTemplate]]] [[[TitleTemplate]]]
+                <p class="post-header normal-text">[[[PostName]]]</p>
+                <a class="post-header" href="thread.html#[[[ParentPost]]]" onclick="onPostNumClicked([[[PostNumber]]])">[[[PostNumber]]]</a>
+                <p class="post-header darker-text">[[[PostDate]]]</p>
+                [[[ReplyButton]]]
+                [[[ReportButton]]]
+                [[[StickyButton]]]
+                [[[DeleteButton]]]
+            </div>
+            <div class="post-body">
+                [[[PostContent]]]
+            </div>
         </div>
         [[[ThreadOmittedPosts]]]
+        </div>
     </div>
     `;
 
@@ -32,6 +37,10 @@ const titleTemplate =
     `
     <strong class="post-header normal-text">[[[PostTitle]]]</strong>
     <span class="post-header normal-text"> - </span>
+    `;
+const filenameTemplate =
+    `
+    <span class="post-header darker-text">[[[Filename]]]</span>
     `;
 const stickyTemplate =
     `
@@ -106,6 +115,25 @@ function createPostContent(postData, postList) {
     return final;
 }
 
+function createPostImage(postData) {
+    let final = '';
+
+    if(postData.pictureBase64 != null && postData.pictureBase64 != '') {
+        let img = document.createElement("img");
+        let type = 'png';
+        let lastDot = postData.pictureFilename.lastIndexOf('.');
+        let ext = postData.pictureFilename.substr(lastDot).toUpperCase();
+        if(ext == 'JPEG' || ext == 'JPG') {
+            type = 'jpeg';
+        }
+        img.src = `data:image/${type};base64,${postData.pictureBase64}`;
+        img.classList = ['post-image'];
+        final = img.outerHTML;
+    }
+
+    return final;
+}
+
 function onReportPost(id) {
     httpAsync(`${baseUrl}/api/threads/report`, "POST", id, function() {
         if(pageLoad) {
@@ -123,6 +151,8 @@ function createPostElem(postData, onThread, thread) {
     const replyButton = postData.parentPostId || onThread ? "" : replyButtonTemplate.replace("[[[ParentPost]]]", parentPost);
     const finalTitle = postData.title ? titleTemplate.replace("[[[PostTitle]]]", postData.title) : "";
     const finalSticky = postData.stickied && postData.parentPostId == null ? stickyTemplate : "";
+    const imagePadding = postData.pictureBase64 != null && postData.pictureBase64 != '' ? 'padding-left: 15px;' : '';
+    const finalFilename = postData.pictureFilename != null && postData.pictureFilename != '' ? filenameTemplate.replace("[[[Filename]]]", postData.pictureFilename) : '';
     let omittedPosts = "";
     if(postData.parentPostId == null && thread.numberOfPosts > thread.children.length - 1 && !onThread) {
         let numOmitted = thread.numberOfPosts - thread.children.length + 1;
@@ -135,13 +165,16 @@ function createPostElem(postData, onThread, thread) {
                     .replaceAll("[[[PostNumber]]]", postData.id)
                     .replaceAll("[[[PostDate]]]", postDateValue)
                     .replaceAll("[[[PostContent]]]", createPostContent(postData, thread.children))
+                    .replaceAll("[[[PostImage]]]", createPostImage(postData))
                     .replaceAll("[[[ReportButton]]]", getPostButton("Report", `onReportPost(${postData.id})`))
                     .replaceAll("[[[StickyButton]]]", stickyButton)
                     .replaceAll("[[[DeleteButton]]]", deleteButton)
                     .replaceAll("[[[TitleTemplate]]]", finalTitle)
                     .replaceAll("[[[StickyTemplate]]]", finalSticky)
                     .replaceAll("[[[ReplyButton]]]", replyButton)
-                    .replaceAll("[[[ThreadOmittedPosts]]]", omittedPosts);
+                    .replaceAll("[[[ImagePadding]]]", imagePadding)
+                    .replaceAll("[[[ThreadOmittedPosts]]]", omittedPosts)
+                    .replaceAll("[[[FilenameTemplate]]]", finalFilename);
 
     let post = document.createElement("div");
     if(postData.parentPostId) {
@@ -183,12 +216,32 @@ function submitNewPost(board, parent, refreshCallback) {
         "parentPostId": parent
     };
 
-    httpAsync(`${baseUrl}/api/threads`, "POST", JSON.stringify(post), function() {
-        refreshCallback();
-    });
+    let onSubmitPost = function() {
+        httpAsync(`${baseUrl}/api/threads`, "POST", JSON.stringify(post), function() {
+            refreshCallback();
+        });
+    }
+
+    let fileList = document.getElementById("reply-file").files;
+
+    if(fileList.length > 0) {
+        let file = fileList[0];
+
+        let reader = new FileReader();
+        reader.onload = function() {
+            post.pictureFilename = file.name;
+            post.pictureBase64 = btoa(reader.result);
+            onSubmitPost();
+        }
+
+        reader.readAsBinaryString(file);
+    } else {
+        onSubmitPost();
+    }
 
     document.getElementById("reply-content").value = "";
     document.getElementById("reply-title").value = "";
+    document.getElementById("reply-file").value = "";
 }
 
 function uuidv4() {
