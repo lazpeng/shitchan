@@ -2,24 +2,24 @@ const postTemplate =
     `
     <div class="post">
         <div style="display: flex; flex-direction: row;">
-        [[[PostImage]]]
-        <div style="display: flex; flex-direction: column; [[[ImagePadding]]]">
-            <div>
-                [[[StickyTemplate]]]
-                [[[FilenameTemplate]]] [[[TitleTemplate]]]
-                <p class="post-header normal-text">[[[PostName]]]</p>
-                <a class="post-header" href="thread.html#[[[ParentPost]]]" onclick="onPostNumClicked([[[PostNumber]]])">[[[PostNumber]]]</a>
-                <p class="post-header darker-text">[[[PostDate]]]</p>
-                [[[ReplyButton]]]
-                [[[ReportButton]]]
-                [[[StickyButton]]]
-                [[[DeleteButton]]]
+            [[[PostImage]]]
+            <div style="display: flex; flex-direction: column; [[[ImagePadding]]]">
+                <div>
+                    [[[StickyTemplate]]]
+                    [[[FilenameTemplate]]] [[[TitleTemplate]]]
+                    <p class="post-header normal-text">[[[PostName]]]</p>
+                    <a class="post-header" href="thread.html#[[[ParentPost]]]" onclick="onPostNumClicked([[[PostNumber]]])">[[[PostNumber]]]</a>
+                    <p class="post-header darker-text">[[[PostDate]]]</p>
+                    [[[ReplyButton]]]
+                    [[[ReportButton]]]
+                    [[[StickyButton]]]
+                    [[[DeleteButton]]]
+                </div>
+                <div class="post-body">
+                    [[[PostContent]]]
+                </div>
+                [[[ThreadOmittedPosts]]]
             </div>
-            <div class="post-body">
-                [[[PostContent]]]
-            </div>
-        </div>
-        [[[ThreadOmittedPosts]]]
         </div>
     </div>
     `;
