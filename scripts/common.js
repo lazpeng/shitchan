@@ -206,7 +206,12 @@ function getCookie(name) {
         }
     });
 
-    return pairs.find(p => p.name == name).value;
+    let result = pairs.find(p => p.name == name);
+    if(result) {
+        return result.value;
+    } else {
+        return null;
+    }
 }
 
 function isLoggedIn() {
@@ -236,7 +241,7 @@ function onPostNumClicked(number) {
 
 function commonLoad() {
     let session = getCookie("session");
-    if(session == "" || session == undefined) {
+    if(session == "" || session == undefined || session == null) {
         setCookie("session", uuidv4());
     }
 
